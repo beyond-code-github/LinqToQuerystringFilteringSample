@@ -1,0 +1,116 @@
+﻿<div id="body">
+    <section class="featured">
+        <div class="content-wrapper">
+            <hgroup class="title">
+                <h1>Filtering with Linq to Querystring</h1>
+            </hgroup>
+            <p>
+                Look how easy it is to filter data with OData and Linq to Querystring!
+            </p>
+        </div>
+    </section>
+    <section class="content-wrapper main-content clear-fix">
+        <h3>Try out the sample:</h3>
+        <ol class="round">
+            <li class="one">
+                <h5>Select a page size</h5>
+                <select data-bind="value: pageSize">
+                    <option value="1">1 record</option>
+                    <option value="2">2 records</option>
+                    <option value="3">3 records</option>
+                    <option value="4">4 records</option>
+                    <option value="5">5 records</option>
+                </select>
+            </li>
+            <li class="two">
+                <h5>Choose a page</h5>
+                <select data-bind="options: pages, value: currentPage"></select>
+            </li>
+            <li class="three">
+                <h5>Filter the results</h5>
+                <input type="text" id="filter" />
+            </li>
+            <li class="four">
+                <h5>See the results</h5>
+                <button data-bind="click: getData" id="goButton">Go!</button>
+                <div id="resultsArea">
+                    <h3>Total: </h3><span data-bind="text: count"></span>
+                    <table>
+                        <thead>
+                            <tr data-bind="foreach: headings">
+                                <th data-bind="text: $data"></th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: { data: records, as: 'record' }">
+                            <tr data-bind="foreach: { data: $root.headings, as: 'field' }">
+                                <td data-bind="text: record[field]"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </li>
+        </ol>
+    </section>
+</div>
+@section scripts
+{
+    <script type="text/javascript">
+        // Define the viewmodel
+        var model = {};
+        model.records = ko.observableArray();
+        model.headings = ko.observableArray();
+        model.count = ko.observable(0);
+        model.currentPage = ko.observable(1);
+        model.pageSize = ko.observable(5);
+        model.pages = ko.computed(function() {
+            var pages = [];
+            if (model.count() > 0) {
+                var pageCount = Math.ceil(model.count() / model.pageSize());
+                for (var i = 0; i < pageCount; i++) {
+                    pages.push(i + 1);
+                }
+            }
+            return pages;
+        });
+
+        // Button click function
+        model.getData = function() {
+            var top = "$top=" + model.pageSize();
+            var skip = "$skip=" + model.pageSize() * (model.currentPage() - 1);
+            var inlinecount = "$inlinecount=allpages";
+            var filter = model.FilterModel ? model.FilterModel.getODataFilter() : "";
+
+            var oDataOptions = [top, skip, inlinecount];
+            if (filter) { oDataOptions.splice(0, 0, filter); }
+
+            $.get("/api/values?" + oDataOptions.join("&"), function(data) {
+                model.count(data.Count);
+                model.records(data.Results);
+                model.headings([]);
+
+                if (data.Results && data.Results.length > 0) {
+                    for (prop in data.Results[0]) {
+                        if (data.Results[0].hasOwnProperty(prop)) {
+                            model.headings.push(prop);
+                        }
+                    }
+                }
+            });
+        };
+
+            // Get data and bind viewmodel on page load
+            $(document).ready(function () {
+            model.getData();
+            ko.applyBindings(model);
+
+            model.FilterModel = $("#filter").oDataFilterUI({
+            Fields: [
+            { text: "Title", value: "Title", type: "string" },
+            { text: "Release Date", value: "ReleaseDate", type: "datetime" },
+            { text: "Director", value: "Director", type: "string" },
+            { text: "MetaScore", value: "MetaScore", type: "int" },
+            { text: "Recommended", value: "Recommended", type: "bool" }]
+        }).Model;
+        });
+    </script>
+}
