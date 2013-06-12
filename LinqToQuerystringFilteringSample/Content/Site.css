@@ -14,6 +14,7 @@ body {
     padding: 0;
 }
 
+
 /* Filter styles */
 #filter + div li {
     display: inline;
@@ -21,9 +22,25 @@ body {
     padding: 0px;
 }
 
-#filter + div ol {
+div > span {
+    display: inline-block;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+#filter + div div {
+    display: inline-block;
+}
+
+#filter + div > ol {
     display: block;
     margin: 0px;
+    padding: 0px;
+}
+
+#filter + div > ol ol {
+    display: inline-block;
+    margin-left: 40px;
     padding: 0px;
 }
 
@@ -36,6 +53,18 @@ body {
     text-transform: capitalize;
     text-decoration:none;
 }
+
+.filterRemove, .addAnother {
+    background-color: #d3dce0;
+    border: 1px solid #787878;
+    cursor: pointer;
+    font-size: 1.2em;
+    font-weight: 600;
+    padding: 7px;
+    margin-right: 8px;
+    width: auto;
+}
+
 /* End Filter styles */
 
 a {
